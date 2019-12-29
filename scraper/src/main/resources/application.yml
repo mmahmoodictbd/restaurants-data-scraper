@@ -1,0 +1,75 @@
+### Common
+
+server:
+  port: 8081
+
+spring:
+
+  application:
+    name: Scraper
+  profiles:
+    active: dev
+  resources:
+    add-mappings: false
+  mvc:
+    throw-exception-if-no-handler-found: true
+
+logging:
+  level:
+    root: INFO
+
+app:
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: data-extractor
+      auto-offset-reset: earliest
+
+---
+
+### Dev profile
+
+spring:
+  profiles: dev
+
+logging:
+  level:
+    com.unloadbrain: DEBUG
+
+---
+
+### Prod profile
+
+spring:
+  profiles: prod
+
+logging:
+  level:
+    com.unloadbrain: INFO
+
+---
+
+### Integration test profile
+
+spring:
+  profiles: it
+  main:
+    allow-bean-definition-overriding: true
+  http:
+    log-request-details: true
+
+logging:
+  level:
+    org.springframework.web.reactive.function.client.ExchangeFunctions: TRACE
+
+
+---
+
+### docker profile
+
+spring:
+  profiles: docker
+
+app:
+  kafka:
+    bootstrap-servers: kafka:29092
