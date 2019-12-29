@@ -1,0 +1,119 @@
+version: '3.3'
+
+services:
+
+  kafka-zookeeper:
+    container_name: kafka-zookeeper
+    hostname: kafka-zookeeper
+    image: wurstmeister/zookeeper
+    ports:
+      - 2181:2181
+    networks:
+      - restaurants-data-scraper
+
+  kafka:
+    container_name: kafka
+    hostname: kafka
+    image: wurstmeister/kafka
+    command: [start-kafka.sh]
+    ports:
+      - 9092:9092
+      - 29092:29092
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: localhost # docker-machine ip
+      KAFKA_LISTENERS: "INTERNAL://:29092,EXTERNAL://:9092"
+      KAFKA_ADVERTISED_LISTENERS: "INTERNAL://kafka:29092,EXTERNAL://localhost:9092"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT"
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_ZOOKEEPER_CONNECT: kafka-zookeeper:2181
+      KAFKA_ADVERTISED_PORT: 9092
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - kafka-zookeeper
+    networks:
+      - restaurants-data-scraper
+
+  kafdrop:
+    container_name: kafdrop
+    image: obsidiandynamics/kafdrop
+    ports:
+      - 9000:9000
+    environment:
+      KAFKA_BROKERCONNECT: "kafka:29092"
+      JVM_OPTS: "-Xms16M -Xmx48M -Xss180K -XX:-TieredCompilation -XX:+UseStringDeduplication -noverify"
+    depends_on:
+      - kafka
+    networks:
+      - restaurants-data-scraper
+
+  mongodb:
+    container_name: mongodb
+    image: mongo:latest
+    command: mongod
+    environment:
+      MONGO_DATA_DIR: /data/db
+      MONGO_LOG_DIR: /dev/null
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+    ports:
+      - 27017:27017
+    volumes:
+      - mongodb-volume:/data/db
+    networks:
+      - restaurants-data-scraper
+
+  mongo-express:
+    container_name: mongo-express
+    image: mongo-express
+    restart: always
+    ports:
+      - 27018:8081
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongodb
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: root
+    depends_on:
+      - mongodb
+    networks:
+      - restaurants-data-scraper
+
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus
+    volumes:
+      - prometheus-volume:/prometheus
+      - ./docker/prometheus/:/etc/prometheus/
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    ports:
+      - 9090:9090
+    restart: always
+    networks:
+      - restaurants-data-scraper
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana
+    restart: always
+    ports:
+      - 3000:3000
+    volumes:
+      - grafana-volume:/var/lib/grafana
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning
+      - ./docker/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards/
+    depends_on:
+      - prometheus
+    networks:
+      - restaurants-data-scraper
+
+networks:
+  restaurants-data-scraper:
+
+volumes:
+  grafana-volume: {}
+  prometheus-volume: {}
+  mongodb-volume: {}
