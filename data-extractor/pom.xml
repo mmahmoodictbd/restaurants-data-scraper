@@ -17,7 +17,7 @@
     <version>1.0.0</version>
 
     <name>data-extractor</name>
-    <description></description>
+    <description>Extract data and persist to DB.</description>
 
 
     <dependencies>

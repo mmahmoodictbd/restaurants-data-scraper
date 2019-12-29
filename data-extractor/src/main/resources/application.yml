@@ -1,0 +1,85 @@
+### Common
+
+server:
+  port: 8082
+
+spring:
+
+  application:
+    name: DataExtractor
+  profiles:
+    active: dev
+  resources:
+    add-mappings: false
+  mvc:
+    throw-exception-if-no-handler-found: true
+  data:
+    mongodb:
+      port: 27017
+      host: localhost
+      username: root
+      password: root
+      database: data-extractor
+      authentication-database: admin
+
+app:
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: data-extractor
+      auto-offset-reset: earliest
+
+logging:
+  level:
+    root: INFO
+
+---
+
+### Dev profile
+
+spring:
+  profiles: dev
+
+logging:
+  level:
+    com.unloadbrain: DEBUG
+
+---
+
+### Prod profile
+
+spring:
+  profiles: prod
+
+logging:
+  level:
+    com.unloadbrain: INFO
+
+---
+
+### Integration test profile
+
+spring:
+  profiles: it
+  main:
+    allow-bean-definition-overriding: true
+  http:
+    log-request-details: true
+
+logging:
+  level:
+    org.springframework.web.reactive.function.client.ExchangeFunctions: TRACE
+
+
+---
+
+### docker profile
+
+spring:
+  profiles: docker
+  data:
+    mongodb:
+      host: mongodb
+app:
+  kafka:
+    bootstrap-servers: kafka:29092
