@@ -17,7 +17,7 @@
     <version>1.0.0</version>
 
     <name>common</name>
-    <description></description>
+    <description>Common utils and exception classes.</description>
 
     <dependencies>
         <dependency>
