@@ -20,7 +20,7 @@
     <version>1.0.0</version>
 
     <name>kpi-publisher</name>
-    <description></description>
+    <description>Read data from DB, calculate/generate KPIs and expose to Prometheus.</description>
 
     <dependencies>
 
