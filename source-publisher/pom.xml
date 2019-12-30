@@ -17,7 +17,7 @@
     <version>1.0.0</version>
 
     <name>source-publisher</name>
-    <description></description>
+    <description>Read datasource (urls and metas) and publish event to scraper to catch.</description>
 
 
     <dependencies>

@@ -1,0 +1,5 @@
+sources:
+  - url: https://www.thuisbezorgd.nl/en/order-takeaway-amsterdam-stadsdeel-binnenstad-1011
+    type: REGION_DATA
+    meta:
+      domain: thuisbezorgd.nl
