@@ -1,0 +1,56 @@
+@startuml
+
+interface "Datasource" as DS
+component "Event Bus aka Kafka" as Kafka
+component "MongoDB" as MongoDB
+component "Prometheus" as PROM
+component "Grafana" as GR
+component "Source Publisher" as SP
+component "Scraper" as SC
+component "Data Extractor" as DE
+component "KPI Publisher" as KP
+
+note bottom of SP
+  Read source yml,
+  i.e. url and metadata.
+end note
+
+DS - SP
+
+SP -right-..> Kafka : (1) Publish \ndatasource to kafka
+
+note left of SC
+Read datasource event
+and scrape.
+end note
+
+Kafka -left-..> SC : (2) Receive \ndatasource
+
+SC ..> Kafka : (3) Put scraped \ndata back
+
+note left of DE
+Read HTML and extract
+out information
+end note
+
+Kafka ..> DE : (4) Scraped data event
+
+DE --> MongoDB : (5) Persist \nextracted data
+
+note right of KP
+Read data from MongoDB.
+Calculate KPI and expose KPI
+to Prometheus.
+end note
+
+DE ..> Kafka : (6) Extraction \nsuccess event
+
+Kafka ..> KP : (7) Receive Extraction \nsuccess event
+
+KP --> MongoDB : (8) Read data \nfrom MongoDB
+
+KP ..> PROM : (9) Expose KPI \ndata to Prometheus
+
+PROM ..> GR : (10) Grafana read \ndata from Prometheus
+
+@enduml

@@ -1,0 +1,139 @@
+# Restaurants Data Scraper
+
+
+###### Motivation
+
+This project is an assignment. Implemented code would be a nice example of Restaurants data scraper and generate business insight from scraped data.
+
+
+### Features
+
+Restaurants Data Scraper provides
+
+- Event driven architecture.
+  * Highly decoupled and scalable.
+  * Single-purpose event processing components that asynchronously receive and process events.
+
+- Configurable Scrape datasource.
+
+- Scalable and highly available NoSQL data store.
+
+- Prometheus and Grafana for Insight dashboard and monitoring.
+
+image::docs/images/component-diagram.png[component-diagram screenshot]
+image::docs/images/grafana-dashboard.png[grafana-dashboard screenshot]
+
+
+### Design Decisions
+
+- According to assignment, distribution of delivery fees has to be shown.
+  * Calculation is done in RestaurantRegionDataProcessor.
+  * Data is exposed to Prometheus.
+  * But couldn't figure out how to show it to Grafana.
+
+- Authentication and authorization is not taking into consideration.
+
+- NoSQL data store is an obvious choice. MongoDB provides high scalability and availability.
+
+
+### Modules Introduction
+
+- `common`: Common utils and exception classes.
+- `source-publisher`: Read datasource (urls and metas) from sources.yml and publish event to scraper to catch.
+- `scraper`: Scrape source and publish content to Apache Kafka.
+- `data-extractor`: Extract data and persist to DB.
+- `kpi-publisher`: Read data from DB, calculate/generate KPIs and expose to Prometheus.
+
+
+### Improvements to make
+
+- Improve architectural design, completed the project in around 10 hours. First time user of Prometheus, Grafana and MongoDB.
+
+- Code improvements
+  * Add end-to-end tests. Cover more unit tests.
+  * Handle failure scenario properly. Publish data to Prometheus would be nice way to represent it.
+
+- Kafka publish error in DataSourcePublisherService, DataScraperService and DataExtractionNotificationPublisherService.
+
+- Handle when data is missing in RestaurantRegionDataProcessor.
+
+- Make APIs to add/delete/modify datasource, instead of `src/main/resources/sources.yml`.
+
+- Build docker image (plugin already added in the pom).
+
+- Generate and check OWASP report.
+
+
+### How to run
+
+
+###### Prerequisite
+- JDK 1.8 (Tested with Oracle JDK)
+- Maven 3.6.x+
+- Docker (19.03.4), Docker Compose (1.24.1)
+
+###### Run in Docker
+```
+# Runs follwing services:
+kafka-zookeeper: Kafka zookeeper
+kafka: Event / Message bus
+kafdrop: UI to administer Kafka
+mongodb: NoSQL DB
+mongo-express: UI to administer MongoDB
+prometheus: Time series database
+grafana: Analytics & monitoring solution
+apps: source-publisher, scraper, data-extractor and kpi-publisher
+```
+
+```
+$ mvn clean compile package
+$ docker-compose build
+$ docker-compose up
+```
+
+
+###### Quick test
+
+- Should able to see Kafka topics at `http://docker-ip:9000/`.
+- Should able to see extracted data in MongoDB at `http://docker-ip:27018/`.
+- Should able to see published data for Prometheus at `http://docker-ip:8084/`.
+- Should able to see Prometheus at `http://docker-ip:9090/`.
+- Should able to see Grafana dashboard at `http://docker-ip:3000/`. Username/pass: admin/admin.
+- How to change datasource url?
+  * Modify `source.yml` in `source-publisher/src/main/resources/sources.yml`.
+  * Add `PublishDataSourceController` in `source-publisher` app's `Application.java`. Make a GET call to`http://ip:8080/`.
+  * Run `mvn clean compile package && docker-compose build && docker-compose up`.
+
+
+### Development
+##### How to run tests
+
+###### How to run unit tests
+To run the unit tests, execute the following commands
+```
+mvn clean test-compile test
+```
+
+###### How to run integration tests
+To run the integration tests, execute the following commands
+```
+mvn clean test-compile verify -DskipTests=true
+```
+
+###### How to run both unit tests and integration tests
+To run the integration tests, execute the following commands
+```
+mvn clean test-compile verify
+```
+
+###### How to run pitest
+To run the mutation tests, execute the following commands
+```
+mvn clean test-compile test
+mvn org.pitest:pitest-maven:mutationCoverage
+```
+
+
+### Copyright & License
+
+Licensed under the MIT License, see the link:LICENSE[LICENSE] file for details.
